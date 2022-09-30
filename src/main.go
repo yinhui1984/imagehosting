@@ -122,14 +122,15 @@ func main() {
 	uploadedImage := getRemoteDir() + "/image/" + path.Base(tempFilePath)
 
 	//MD format of the image
+	md := "![image](" + uploadedImage + ")"
 	fmt.Println()
 	fmt.Println()
-	fmt.Println("![image](" + uploadedImage + ")")
+	fmt.Println(md)
 	fmt.Println()
 	fmt.Println()
 
 	//copy to clipboard
-	err = execCommand("pbcopy " + uploadedImage)
+	err = execCommand("echo " + md + " | pbcopy")
 	if err != nil {
 		log.Fatal("can not copy to clipboard ", err)
 	}
