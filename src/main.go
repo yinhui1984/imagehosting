@@ -108,7 +108,7 @@ func execCommand(command string) error {
 }
 
 func execCommandAndReturnOutput(command string) (string, error) {
-	cmd := exec.Command("bash -c", command)
+	cmd := exec.Command("bash", "-c", command)
 	out, err := cmd.Output()
 	return string(out), err
 }
