@@ -75,8 +75,15 @@ func generateFileName(url string) string {
 	return path.Join(getCurrentDir()+"/images", strconv.FormatInt(time.Now().UnixNano(), 10)+"-"+fileName)
 }
 
-func execCommand(command string, args ...string) error {
-	cmd := exec.Command(command, args...)
+//func execCommand(command string, args ...string) error {
+//	cmd := exec.Command(command, args...)
+//	cmd.Stdout = os.Stdout
+//	cmd.Stderr = os.Stderr
+//	return cmd.Run()
+//}
+
+func execCommand(command string) error {
+	cmd := exec.Command("bash", "-c", command)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -104,30 +111,20 @@ func main() {
 
 	log.Println("Downloaded file to: " + tempFilePath)
 
-	err = execCommand("cd", getCurrentDir())
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = execCommand("git", "add", ".")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = execCommand("git", "commit", "-m", "add images")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = execCommand("git", "push", "origin", "main")
+	cmd := "cd " + getCurrentDir() + " && git add . && git commit -m 'new image' && git push origin main"
+
+	err = execCommand(cmd)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	uploadedImage := getRemoteDir() + "/image/" + tempFilePath
+	uploadedImage := getRemoteDir() + "/image/" + path.Base(tempFilePath)
 
 	//MD format of the image
 	log.Println("![image](" + uploadedImage + ")")
 
 	//copy to clipboard
-	err = execCommand("pbcopy", uploadedImage)
+	err = execCommand("pbcopy " + uploadedImage)
 	if err != nil {
 		log.Fatal("can not copy to clipboard ", err)
 	}
