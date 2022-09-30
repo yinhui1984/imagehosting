@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -58,6 +59,15 @@ func getCurrentDir() string {
 	return path.Join(home, "Documents/github/imagehosting/")
 }
 
+func getRemoteDir() string {
+	remote, err := execCommandAndReturnOutput("git", "remote", "get-url", "origin")
+	if err != nil {
+		log.Fatal("can not get remote url: ", err)
+	}
+	remote = strings.TrimSuffix(remote, ".git")
+	return remote
+}
+
 func generateFileName(url string) string {
 
 	fileName := path.Base(url)
@@ -72,27 +82,29 @@ func execCommand(command string, args ...string) error {
 	return cmd.Run()
 }
 
+func execCommandAndReturnOutput(command string, args ...string) (string, error) {
+	cmd := exec.Command(command, args...)
+	out, err := cmd.Output()
+	return string(out), err
+}
+
+// example: go run main.go https://i.stack.imgur.com/5W3rG.png
 func main() {
 
-	//if len(os.Args) != 2 {
-	//	log.Println("Usage: main.go <image_file>")
-	//	os.Exit(1)
-	//}
-	//url := os.Args[1]
-	//tempFilePath := generateFileName(url)
-	//err := downloadFile(url, tempFilePath)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//log.Println("Downloaded file to: " + tempFilePath)
+	if len(os.Args) != 2 {
+		log.Println("Usage: main.go <image_file>")
+		os.Exit(1)
+	}
+	url := os.Args[1]
+	tempFilePath := generateFileName(url)
+	err := downloadFile(url, tempFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	//commit images to github
-	//git add .
-	//git commit -m "add images"
-	//git push origin master
+	log.Println("Downloaded file to: " + tempFilePath)
 
-	err := execCommand("cd", getCurrentDir())
+	err = execCommand("cd", getCurrentDir())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -107,6 +119,17 @@ func main() {
 	err = execCommand("git", "push", "origin", "main")
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	uploadedImage := getRemoteDir() + "/image/" + tempFilePath
+
+	//MD format of the image
+	log.Println("![image](" + uploadedImage + ")")
+
+	//copy to clipboard
+	err = execCommand("pbcopy", uploadedImage)
+	if err != nil {
+		log.Fatal("can not copy to clipboard ", err)
 	}
 
 }
