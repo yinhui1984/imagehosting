@@ -77,7 +77,8 @@ func getCurrentDir() string {
 }
 
 func getRemoteDir() string {
-	remote, err := execCommandAndReturnOutput("git", "remote", "get-url", "origin")
+	cmd := "cd " + getCurrentDir() + " && git remote get-url origin"
+	remote, err := execCommandAndReturnOutput(cmd)
 	if err != nil {
 		log.Fatal("can not get remote url: ", err)
 	}
@@ -106,8 +107,8 @@ func execCommand(command string) error {
 	return cmd.Run()
 }
 
-func execCommandAndReturnOutput(command string, args ...string) (string, error) {
-	cmd := exec.Command(command, args...)
+func execCommandAndReturnOutput(command string) (string, error) {
+	cmd := exec.Command("bash -c", command)
 	out, err := cmd.Output()
 	return string(out), err
 }
