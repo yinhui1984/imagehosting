@@ -104,7 +104,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = execCommand("git", "push", "origin", "master")
+	err = execCommand("git", "push", "origin", "main")
 	if err != nil {
 		log.Fatal(err)
 	}
