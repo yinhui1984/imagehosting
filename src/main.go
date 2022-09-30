@@ -119,7 +119,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	uploadedImage := getRemoteDir() + "/image/" + path.Base(tempFilePath)
+	uploadedImage := getRemoteDir() + "/blob/main/images/" + path.Base(tempFilePath) + "?raw=true"
 
 	//MD format of the image
 	md := "![image](" + uploadedImage + ")"
@@ -130,7 +130,7 @@ func main() {
 	fmt.Println()
 
 	//copy to clipboard
-	err = execCommand("echo " + md + " | pbcopy")
+	err = execCommand("echo \"" + md + "\" | pbcopy")
 	if err != nil {
 		log.Fatal("can not copy to clipboard ", err)
 	}
