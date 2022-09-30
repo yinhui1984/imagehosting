@@ -64,7 +64,7 @@ func getRemoteDir() string {
 	if err != nil {
 		log.Fatal("can not get remote url: ", err)
 	}
-	remote = strings.TrimSuffix(remote, ".git")
+	remote = strings.TrimSuffix(remote, ".git\n")
 	return remote
 }
 
