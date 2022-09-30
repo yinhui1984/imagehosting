@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -121,7 +122,11 @@ func main() {
 	uploadedImage := getRemoteDir() + "/image/" + path.Base(tempFilePath)
 
 	//MD format of the image
-	log.Println("![image](" + uploadedImage + ")")
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("![image](" + uploadedImage + ")")
+	fmt.Println()
+	fmt.Println()
 
 	//copy to clipboard
 	err = execCommand("pbcopy " + uploadedImage)
