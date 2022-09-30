@@ -6,4 +6,10 @@
     2. 生成markdown格式的图片链接
    ```bash
     go run ./src/main.go https://i.stack.imgur.com/5W3rG.png
+    # 或者
+    go run ./src/main.go ~/Downloads/5W3rG.png
+    ```
+   输出
+   ```markdown
+    ![image](https://github.com/yinhui1984/imagehosting/blob/main/images/1664515782371748000-5W3rG.png?raw=true)
     ```
