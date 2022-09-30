@@ -92,7 +92,7 @@ func main() {
 	//git commit -m "add images"
 	//git push origin master
 
-	err := execCommand("cd", getCurrentDir()+"/images")
+	err := execCommand("cd", getCurrentDir())
 	if err != nil {
 		log.Fatal(err)
 	}
