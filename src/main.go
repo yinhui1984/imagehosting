@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -16,6 +17,21 @@ import (
 
 // DownloadFile will download an url to a local file.
 func downloadFile(URL, fileName string) error {
+
+	u, err := url.Parse(URL)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		//not a valid url, maybe local file
+		if _, err := os.Stat(URL); errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("file %s does not exist", URL)
+		} else {
+			err := execCommand("cp " + URL + " " + fileName)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
 	//Get the response bytes from the url
 	response, err := http.Get(URL)
 	if err != nil {
