@@ -90,7 +90,11 @@ func generateFileName(url string) string {
 
 	fileName := path.Base(url)
 
-	return path.Join(getCurrentDir()+"/images", strconv.FormatInt(time.Now().UnixNano(), 10)+"-"+fileName)
+	//get extension of fileName
+	extension := path.Ext(fileName)
+
+	//return path.Join(getCurrentDir()+"/images", strconv.FormatInt(time.Now().UnixNano(), 10)+"-"+fileName)
+	return path.Join(getCurrentDir()+"/images", strconv.FormatInt(time.Now().UnixNano(), 10)+extension)
 }
 
 //func execCommand(command string, args ...string) error {
