@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -112,22 +113,84 @@ func downloadFile(URL, fileName string) error {
 	return nil
 }
 
+// findGitRoot 从指定目录向上查找 .git 目录，返回 Git 仓库根目录
+func findGitRoot(startDir string) (string, error) {
+	dir, err := filepath.Abs(startDir)
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		gitDir := filepath.Join(dir, ".git")
+		if info, err := os.Stat(gitDir); err == nil && info.IsDir() {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// 到达文件系统根目录
+			break
+		}
+		dir = parent
+	}
+
+	return "", fmt.Errorf("git repository not found")
+}
+
+// getExecutableDir 获取可执行文件所在的目录
+func getExecutableDir() (string, error) {
+	execPath, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	execPath, err = filepath.EvalSymlinks(execPath)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Dir(execPath), nil
+}
+
 func getCurrentDir() string {
-	// Try to get current working directory first
-	wd, err := os.Getwd()
-	if err == nil {
-		// Check if we're in the imagehosting directory
-		if strings.HasSuffix(wd, "imagehosting") || strings.Contains(wd, "imagehosting") {
-			return wd + "/"
+	// 方法1: 从当前工作目录向上查找 .git 目录
+	if wd, err := os.Getwd(); err == nil {
+		if gitRoot, err := findGitRoot(wd); err == nil {
+			absPath, err := filepath.Abs(gitRoot)
+			if err == nil {
+				return absPath + string(filepath.Separator)
+			}
 		}
 	}
 
-	// Fallback to hardcoded path
+	// 方法2: 从可执行文件位置向上查找 .git 目录
+	if execDir, err := getExecutableDir(); err == nil {
+		// 如果可执行文件在 bin/ 目录下，向上查找项目根目录
+		if strings.HasSuffix(execDir, "bin") {
+			parentDir := filepath.Dir(execDir)
+			if gitRoot, err := findGitRoot(parentDir); err == nil {
+				absPath, err := filepath.Abs(gitRoot)
+				if err == nil {
+					return absPath + string(filepath.Separator)
+				}
+			}
+		} else {
+			// 从可执行文件目录向上查找
+			if gitRoot, err := findGitRoot(execDir); err == nil {
+				absPath, err := filepath.Abs(gitRoot)
+				if err == nil {
+					return absPath + string(filepath.Separator)
+				}
+			}
+		}
+	}
+
+	// 方法3: Fallback 到硬编码路径（如果以上方法都失败）
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal("failed to get home directory: ", err)
 	}
-	return path.Join(home, "Documents/github/imagehosting/")
+	fallbackPath := path.Join(home, "Documents/github/imagehosting/")
+	log.Printf("Warning: Could not find git repository, using fallback path: %s", fallbackPath)
+	return fallbackPath
 }
 
 func getRemoteDir() string {
@@ -185,7 +248,7 @@ func generateFileName(url string, contentType string) string {
 		}
 	}
 
-	return path.Join(getCurrentDir()+"/images", strconv.FormatInt(time.Now().UnixNano(), 10)+extension)
+	return filepath.Join(getCurrentDir(), "images", strconv.FormatInt(time.Now().UnixNano(), 10)+extension)
 }
 
 func ensureDir(dir string) error {
@@ -327,14 +390,14 @@ func generateImageURL(remoteURL, branch, filePath string) string {
 // example: go run main.go https://i.stack.imgur.com/5W3rG.png
 func main() {
 	if len(os.Args) != 2 {
-		log.Println("Usage: go run main.go <image_file_or_url>")
+		log.Println("Usage: <image_file_or_url> need to be a valid image url or local file path")
 		os.Exit(1)
 	}
 
 	imageURL := os.Args[1]
 
 	// Ensure images directory exists
-	imagesDir := path.Join(getCurrentDir(), "images")
+	imagesDir := filepath.Join(getCurrentDir(), "images")
 	if err := ensureDir(imagesDir); err != nil {
 		log.Fatal("failed to create images directory: ", err)
 	}
